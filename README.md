@@ -11,7 +11,7 @@ model.
 Project developed as part of the Advanced Distributed Applications course at Universitatea Politehnica Timișoara.
 
 Team members:
-Copilu Tudor
-Cozma Gabriel
-Dobre Andrei
+Copilu Tudor, 
+Cozma Gabriel,
+Dobre Andrei, 
 Gherasim-Piroska Robert
