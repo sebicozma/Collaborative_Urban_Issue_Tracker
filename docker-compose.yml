@@ -1,0 +1,24 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: urban-rabbitmq
+    hostname: urban-rabbitmq
+    ports:
+      - "5672:5672"     # AMQP
+      - "15672:15672"   # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: urban
+      RABBITMQ_DEFAULT_PASS: urban
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  rabbitmq-data:

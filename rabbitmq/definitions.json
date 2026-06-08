@@ -1,0 +1,155 @@
+{
+  "rabbit_version": "3.13.0",
+  "users": [
+    {
+      "name": "urban",
+      "password": "urban",
+      "tags": ["administrator"]
+    }
+  ],
+  "vhosts": [
+    { "name": "/" }
+  ],
+  "permissions": [
+    {
+      "user": "urban",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "urban.events",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "urban.events.dlx",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "ai-classification.report-created",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "urban.events.dlx",
+        "x-dead-letter-routing-key": "ai-classification.report-created.dead"
+      }
+    },
+    {
+      "name": "reports.report-classified",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "urban.events.dlx",
+        "x-dead-letter-routing-key": "reports.report-classified.dead"
+      }
+    },
+    {
+      "name": "notification.events",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "urban.events.dlx",
+        "x-dead-letter-routing-key": "notification.events.dead"
+      }
+    },
+    {
+      "name": "ai-classification.report-created.dead",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "reports.report-classified.dead",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "notification.events.dead",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "urban.events",
+      "vhost": "/",
+      "destination": "ai-classification.report-created",
+      "destination_type": "queue",
+      "routing_key": "report.created",
+      "arguments": {}
+    },
+    {
+      "source": "urban.events",
+      "vhost": "/",
+      "destination": "reports.report-classified",
+      "destination_type": "queue",
+      "routing_key": "report.classified",
+      "arguments": {}
+    },
+    {
+      "source": "urban.events",
+      "vhost": "/",
+      "destination": "notification.events",
+      "destination_type": "queue",
+      "routing_key": "report.status_changed",
+      "arguments": {}
+    },
+    {
+      "source": "urban.events",
+      "vhost": "/",
+      "destination": "notification.events",
+      "destination_type": "queue",
+      "routing_key": "user.registered",
+      "arguments": {}
+    },
+    {
+      "source": "urban.events.dlx",
+      "vhost": "/",
+      "destination": "ai-classification.report-created.dead",
+      "destination_type": "queue",
+      "routing_key": "ai-classification.report-created.dead",
+      "arguments": {}
+    },
+    {
+      "source": "urban.events.dlx",
+      "vhost": "/",
+      "destination": "reports.report-classified.dead",
+      "destination_type": "queue",
+      "routing_key": "reports.report-classified.dead",
+      "arguments": {}
+    },
+    {
+      "source": "urban.events.dlx",
+      "vhost": "/",
+      "destination": "notification.events.dead",
+      "destination_type": "queue",
+      "routing_key": "notification.events.dead",
+      "arguments": {}
+    }
+  ],
+  "policies": [],
+  "parameters": []
+}
