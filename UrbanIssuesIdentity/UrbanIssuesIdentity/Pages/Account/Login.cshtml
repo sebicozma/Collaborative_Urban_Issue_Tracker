@@ -1,0 +1,46 @@
+@page
+@model UrbanIssuesIdentity.Pages.Account.LoginModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign in — Urban Issues Identity</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 380px; margin: 4rem auto; padding: 0 1rem; }
+        h1 { font-size: 1.4rem; margin-bottom: 1.5rem; }
+        label { display: block; margin: 0.75rem 0 0.25rem; font-size: 0.9rem; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 0.5rem; box-sizing: border-box; }
+        button { margin-top: 1.25rem; padding: 0.6rem 1.2rem; font-size: 1rem; }
+        .errors { color: #b00; margin-top: 1rem; }
+        .hint { color: #666; font-size: 0.85rem; margin-top: 1.5rem; }
+    </style>
+</head>
+<body>
+    <h1>Sign in to Urban Issues Identity</h1>
+
+    <form method="post">
+        <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
+
+        <label asp-for="Input.Username">Username</label>
+        <input asp-for="Input.Username" autocomplete="username" autofocus />
+
+        <label asp-for="Input.Password">Password</label>
+        <input asp-for="Input.Password" autocomplete="current-password" />
+
+        <label style="font-weight: normal;">
+            <input asp-for="Input.RememberMe" type="checkbox" />
+            Remember me
+        </label>
+
+        <div class="errors" asp-validation-summary="All"></div>
+
+        <button type="submit">Sign in</button>
+    </form>
+
+    <p class="hint">Dev test accounts: <code>alice / Test1234</code>, <code>bob / Test1234</code>.</p>
+</body>
+</html>
