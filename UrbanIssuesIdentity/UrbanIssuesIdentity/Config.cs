@@ -1,3 +1,4 @@
+using Duende.IdentityModel;
 using Duende.IdentityServer.Models;
 
 namespace UrbanIssuesIdentity;
@@ -8,7 +9,15 @@ public static class Config
     [
         new IdentityResources.OpenId(),
         new IdentityResources.Profile(),
-        new IdentityResources.Email()
+        new IdentityResources.Email(),
+
+        new IdentityResource(
+            name:        "roles",
+            displayName: "Your role(s)",
+            userClaims:  [JwtClaimTypes.Role])
+        {
+            Emphasize = true
+        }
     ];
 
     public static IEnumerable<ApiScope> ApiScopes =>
@@ -51,6 +60,38 @@ public static class Config
             },
 
             AllowOfflineAccess = true
+        },
+
+        new Client
+        {
+            ClientId   = "urban-issues-admin",
+            ClientName = "Urban Issues Admin Dashboard",
+
+            AllowedGrantTypes   = GrantTypes.Code,
+            RequirePkce         = true,
+            RequireClientSecret = true,
+            ClientSecrets       = { new Secret("dev-admin-secret".Sha256()) },
+
+            RedirectUris           = { "http://localhost:3000/api/auth/callback" },
+            PostLogoutRedirectUris = { "http://localhost:3000/" },
+
+            AllowedScopes =
+            {
+                "openid",
+                "profile",
+                "email",
+                "roles",
+                "urban-issues-api.read",
+                "urban-issues-api.write"
+            },
+
+            AllowOfflineAccess               = true,   // refresh tokens
+            AllowAccessTokensViaBrowser      = false,
+            RequireConsent                   = false,
+            AlwaysIncludeUserClaimsInIdToken = true,   // guarantees role in id_token
+
+            RefreshTokenUsage      = TokenUsage.OneTimeOnly,   // rotation
+            RefreshTokenExpiration = TokenExpiration.Sliding
         }
     ];
 }

@@ -1,0 +1,403 @@
+openapi: 3.1.0
+info:
+  title: Urban Pulse Gateway API
+  version: 0.1.0
+  summary: Public HTTP API exposed by the API Gateway.
+  description: |
+    External API contract for mobile and web clients.
+    The gateway fronts identity and reports capabilities.
+servers:
+  - url: https://api.urbanpulse.example.com/v1
+    description: Production
+  - url: https://staging-api.urbanpulse.example.com/v1
+    description: Staging
+tags:
+  - name: Auth
+  - name: Reports
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistrationRequest'
+      responses:
+        '201':
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegistrationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /auth/token:
+    post:
+      tags: [Auth]
+      summary: Issue an access token
+      operationId: issueAccessToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+      responses:
+        '200':
+          description: Access token issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /reports:
+    get:
+      tags: [Reports]
+      summary: List reports
+      operationId: listReports
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          required: false
+          schema:
+            $ref: '#/components/schemas/ReportStatus'
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - in: query
+          name: cursor
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A paginated report list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Reports]
+      summary: Create a new report
+      operationId: createReport
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportCreateRequest'
+      responses:
+        '201':
+          description: Report created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportCreateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /reports/{reportId}:
+    get:
+      tags: [Reports]
+      summary: Get report details
+      operationId: getReportById
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+      responses:
+        '200':
+          description: Report details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /reports/{reportId}/status:
+    patch:
+      tags: [Reports]
+      summary: Update report status
+      operationId: updateReportStatus
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportStatusUpdateRequest'
+      responses:
+        '200':
+          description: Report status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatusUpdateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    ReportId:
+      name: reportId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    BadRequest:
+      description: Invalid input
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    Unauthorized:
+      description: Authentication failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    NotFound:
+      description: Entity not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    Conflict:
+      description: Resource conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+  schemas:
+    ProblemDetails:
+      type: object
+      required: [type, title, status]
+      properties:
+        type:
+          type: string
+          format: uri
+          example: https://api.urbanpulse.example.com/errors/invalid-request
+        title:
+          type: string
+          example: Invalid request
+        status:
+          type: integer
+          example: 400
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri
+    UserRegistrationRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password, fullName, role]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 12
+        fullName:
+          type: string
+          minLength: 2
+          maxLength: 120
+        role:
+          type: string
+          enum: [citizen, contractor, admin, supervisor]
+    UserRegistrationResponse:
+      type: object
+      required: [userId, email, role, createdAt]
+      properties:
+        userId:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [citizen, contractor, admin, supervisor]
+        createdAt:
+          type: string
+          format: date-time
+    TokenRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    TokenResponse:
+      type: object
+      required: [accessToken, tokenType, expiresIn]
+      properties:
+        accessToken:
+          type: string
+        tokenType:
+          type: string
+          const: Bearer
+        expiresIn:
+          type: integer
+          minimum: 1
+          description: Token lifetime in seconds.
+    ReportStatus:
+      type: string
+      enum: [submitted, in_review, classified, approved, rejected]
+    GeoPoint:
+      type: object
+      additionalProperties: false
+      required: [lat, lon]
+      properties:
+        lat:
+          type: number
+          minimum: -90
+          maximum: 90
+        lon:
+          type: number
+          minimum: -180
+          maximum: 180
+    ReportCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [title, description, category, location]
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 180
+        description:
+          type: string
+          minLength: 10
+          maxLength: 5000
+        category:
+          type: string
+          enum: [waste, road, lighting, water, safety, other]
+        location:
+          $ref: '#/components/schemas/GeoPoint'
+        attachments:
+          type: array
+          items:
+            type: string
+            format: uri
+          maxItems: 10
+    ReportCreateResponse:
+      type: object
+      required: [reportId, status, createdAt]
+      properties:
+        reportId:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/ReportStatus'
+        createdAt:
+          type: string
+          format: date-time
+    ReportSummary:
+      type: object
+      required: [reportId, title, category, status, createdAt]
+      properties:
+        reportId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        category:
+          type: string
+        status:
+          $ref: '#/components/schemas/ReportStatus'
+        createdAt:
+          type: string
+          format: date-time
+    ReportDetail:
+      allOf:
+        - $ref: '#/components/schemas/ReportSummary'
+        - type: object
+          required: [description, location, reporterUserId]
+          properties:
+            description:
+              type: string
+            location:
+              $ref: '#/components/schemas/GeoPoint'
+            reporterUserId:
+              type: string
+              format: uuid
+            classifiedCategory:
+              type: [string, 'null']
+            statusReason:
+              type: [string, 'null']
+            updatedAt:
+              type: string
+              format: date-time
+    ReportStatusUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status:
+          $ref: '#/components/schemas/ReportStatus'
+        reason:
+          type: string
+          maxLength: 500
+    ReportStatusUpdateResponse:
+      type: object
+      required: [reportId, previousStatus, currentStatus, updatedAt]
+      properties:
+        reportId:
+          type: string
+          format: uuid
+        previousStatus:
+          $ref: '#/components/schemas/ReportStatus'
+        currentStatus:
+          $ref: '#/components/schemas/ReportStatus'
+        updatedAt:
+          type: string
+          format: date-time
+    ReportListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportSummary'
+        nextCursor:
+          type: [string, 'null']
