@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Urban Pulse",
+    "slug": "urban-issues-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "urbanpulse",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.urbanpulse.mobile",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Used to attach your location to issue reports."
+      }
+    },
+    "android": {
+      "package": "com.urbanpulse.mobile",
+      "permissions": ["ACCESS_FINE_LOCATION"]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-location",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Used to attach photos to issue reports."
+        }
+      ]
+    ]
+  }
+}
