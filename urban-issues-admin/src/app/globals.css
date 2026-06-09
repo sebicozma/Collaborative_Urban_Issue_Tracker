@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+html,
+body {
+  height: 100%;
+}
+
+/*
+ * Tailwind's preflight applies `max-width: 100%` to every <img>, which distorts
+ * Leaflet's map tiles and marker icons. Leaflet sizes its own images, so opt them
+ * out. Higher specificity than the preflight `img` rule, so order doesn't matter.
+ */
+.leaflet-container img {
+  max-width: none;
+}
