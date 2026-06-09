@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: notifications-service
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: urban
+    password: urban
+    virtual-host: /
+    listener:
+      simple:
+        acknowledge-mode: manual
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+    time-zone: UTC
+
+server:
+  port: 8082

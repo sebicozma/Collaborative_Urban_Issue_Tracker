@@ -1,0 +1,317 @@
+asyncapi: 3.0.0
+info:
+  title: Urban Pulse Internal Event Contract
+  version: 0.1.0
+  summary: RabbitMQ events exchanged between internal microservices.
+  description: |
+    This contract documents event-driven communication over RabbitMQ
+    between Identity, Reports, AI Classification, and Notification services.
+defaultContentType: application/json
+servers:
+  rabbitmq:
+    host: rabbitmq.internal.urbanpulse:5672
+    protocol: amqp
+    description: Internal RabbitMQ broker
+channels:
+  userRegistered:
+    address: urbanpulse.user.registered
+    messages:
+      userRegistered:
+        $ref: '#/components/messages/UserRegistered'
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: urbanpulse.events
+          type: topic
+          durable: true
+          autoDelete: false
+  reportCreated:
+    address: urbanpulse.report.created
+    messages:
+      reportCreated:
+        $ref: '#/components/messages/ReportCreated'
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: urbanpulse.events
+          type: topic
+          durable: true
+          autoDelete: false
+  reportClassified:
+    address: urbanpulse.report.classified
+    messages:
+      reportClassified:
+        $ref: '#/components/messages/ReportClassified'
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: urbanpulse.events
+          type: topic
+          durable: true
+          autoDelete: false
+  reportStatusChanged:
+    address: urbanpulse.report.status.changed
+    messages:
+      reportStatusChanged:
+        $ref: '#/components/messages/ReportStatusChanged'
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: urbanpulse.events
+          type: topic
+          durable: true
+          autoDelete: false
+operations:
+  publishUserRegistered:
+    action: send
+    channel:
+      $ref: '#/channels/userRegistered'
+    title: Identity service publishes user registration
+    messages:
+      - $ref: '#/channels/userRegistered/messages/userRegistered'
+  consumeUserRegisteredForNotification:
+    action: receive
+    channel:
+      $ref: '#/channels/userRegistered'
+    title: Notification service consumes user registration
+    messages:
+      - $ref: '#/channels/userRegistered/messages/userRegistered'
+    bindings:
+      amqp:
+        ack: true
+        queue:
+          name: notification.user.registered.v1
+          durable: true
+          exclusive: false
+          autoDelete: false
+  publishReportCreated:
+    action: send
+    channel:
+      $ref: '#/channels/reportCreated'
+    title: Reports service publishes report creation
+    messages:
+      - $ref: '#/channels/reportCreated/messages/reportCreated'
+  consumeReportCreatedForClassification:
+    action: receive
+    channel:
+      $ref: '#/channels/reportCreated'
+    title: AI Classification service consumes report creation
+    messages:
+      - $ref: '#/channels/reportCreated/messages/reportCreated'
+    bindings:
+      amqp:
+        ack: true
+        queue:
+          name: ai.report.created.v1
+          durable: true
+          exclusive: false
+          autoDelete: false
+  publishReportClassified:
+    action: send
+    channel:
+      $ref: '#/channels/reportClassified'
+    title: AI Classification service publishes classification result
+    messages:
+      - $ref: '#/channels/reportClassified/messages/reportClassified'
+  consumeReportClassifiedForReports:
+    action: receive
+    channel:
+      $ref: '#/channels/reportClassified'
+    title: Reports service consumes classification result
+    messages:
+      - $ref: '#/channels/reportClassified/messages/reportClassified'
+    bindings:
+      amqp:
+        ack: true
+        queue:
+          name: reports.report.classified.v1
+          durable: true
+          exclusive: false
+          autoDelete: false
+  publishReportStatusChanged:
+    action: send
+    channel:
+      $ref: '#/channels/reportStatusChanged'
+    title: Reports service publishes status changes
+    messages:
+      - $ref: '#/channels/reportStatusChanged/messages/reportStatusChanged'
+  consumeReportStatusChangedForNotification:
+    action: receive
+    channel:
+      $ref: '#/channels/reportStatusChanged'
+    title: Notification service consumes report status changes
+    messages:
+      - $ref: '#/channels/reportStatusChanged/messages/reportStatusChanged'
+    bindings:
+      amqp:
+        ack: true
+        queue:
+          name: notification.report.status.changed.v1
+          durable: true
+          exclusive: false
+          autoDelete: false
+components:
+  messageTraits:
+    CommonHeaders:
+      headers:
+        type: object
+        additionalProperties: false
+        required: [eventId, eventType, eventVersion, occurredAt, producer, correlationId]
+        properties:
+          eventId:
+            type: string
+            format: uuid
+          eventType:
+            type: string
+          eventVersion:
+            type: string
+            pattern: '^v[0-9]+$'
+          occurredAt:
+            type: string
+            format: date-time
+          producer:
+            type: string
+            examples: [identity-service, reports-service, ai-classification-service]
+          correlationId:
+            type: string
+            format: uuid
+          causationId:
+            type: [string, 'null']
+            format: uuid
+  messages:
+    UserRegistered:
+      name: userRegistered
+      title: User Registered
+      summary: New user account created
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/CommonHeaders'
+      payload:
+        $ref: '#/components/schemas/UserRegisteredPayload'
+    ReportCreated:
+      name: reportCreated
+      title: Report Created
+      summary: New report submitted by a user
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/CommonHeaders'
+      payload:
+        $ref: '#/components/schemas/ReportCreatedPayload'
+    ReportClassified:
+      name: reportClassified
+      title: Report Classified
+      summary: AI classification completed for a report
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/CommonHeaders'
+      payload:
+        $ref: '#/components/schemas/ReportClassifiedPayload'
+    ReportStatusChanged:
+      name: reportStatusChanged
+      title: Report Status Changed
+      summary: Report lifecycle status changed
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/CommonHeaders'
+      payload:
+        $ref: '#/components/schemas/ReportStatusChangedPayload'
+  schemas:
+    GeoPoint:
+      type: object
+      additionalProperties: false
+      required: [lat, lon]
+      properties:
+        lat:
+          type: number
+          minimum: -90
+          maximum: 90
+        lon:
+          type: number
+          minimum: -180
+          maximum: 180
+    UserRegisteredPayload:
+      type: object
+      additionalProperties: false
+      required: [userId, email, role, registeredAt]
+      properties:
+        userId:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [citizen, contractor, admin, supervisor]
+        registeredAt:
+          type: string
+          format: date-time
+    ReportCreatedPayload:
+      type: object
+      additionalProperties: false
+      required: [reportId, reporterUserId, category, location, createdAt]
+      properties:
+        reportId:
+          type: string
+          format: uuid
+        reporterUserId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [waste, road, lighting, water, safety, other]
+        location:
+          $ref: '#/components/schemas/GeoPoint'
+        createdAt:
+          type: string
+          format: date-time
+    ReportClassifiedPayload:
+      type: object
+      additionalProperties: false
+      required: [reportId, modelVersion, classifiedCategory, confidence, classifiedAt]
+      properties:
+        reportId:
+          type: string
+          format: uuid
+        modelVersion:
+          type: string
+        classifiedCategory:
+          type: string
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        classifiedAt:
+          type: string
+          format: date-time
+    ReportStatusChangedPayload:
+      type: object
+      additionalProperties: false
+      required: [reportId, previousStatus, currentStatus, changedBy, changedAt]
+      properties:
+        reportId:
+          type: string
+          format: uuid
+        previousStatus:
+          $ref: '#/components/schemas/ReportStatus'
+        currentStatus:
+          $ref: '#/components/schemas/ReportStatus'
+        changedBy:
+          type: string
+          format: uuid
+        reason:
+          type: string
+        changedAt:
+          type: string
+          format: date-time
+    ReportStatus:
+      type: string
+      enum: [submitted, in_review, classified, approved, rejected]

@@ -39,6 +39,36 @@ services:
       timeout: 5s
       retries: 5
 
+  reports-service:
+    build:
+      context: ./ReportsService
+    container_name: urban-reports
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://urban-postgres:5432/reports-db
+      SPRING_DATASOURCE_USERNAME: reports_app
+      SPRING_DATASOURCE_PASSWORD: reports_app
+      SPRING_RABBITMQ_HOST: urban-rabbitmq
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://urban-identity:5222
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  notifications-service:
+    build:
+      context: ./NotificationsService
+    container_name: urban-notifications
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_RABBITMQ_HOST: urban-rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
 volumes:
   rabbitmq-data:
   postgres-data:
