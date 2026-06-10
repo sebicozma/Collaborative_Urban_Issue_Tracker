@@ -8,5 +8,6 @@ public record ReportSummaryDto(
         String title,
         String category,
         String status,
-        OffsetDateTime createdAt
+        OffsetDateTime createdAt,
+        GeoPointDto location
 ) {}

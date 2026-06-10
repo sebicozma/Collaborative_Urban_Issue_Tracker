@@ -37,18 +37,17 @@ public static class Config
 
     public static IEnumerable<Client> Clients =>
     [
+        // The mobile app authenticates through the gateway's POST /auth/token
+        // translation route (JSON {email, password} -> password grant). ROPC is
+        // deprecated in OAuth 2.1 but is exactly the username+password -> token
+        // shape the gateway spec promises; acceptable for an educational project.
         new Client
         {
-            ClientId = "urban-issues-web",
-            ClientName = "Urban Issues Web Client",
+            ClientId   = "urban-issues-mobile",
+            ClientName = "Urban Issues Mobile App",
 
-            AllowedGrantTypes = GrantTypes.Code,
-            RequirePkce = true,
+            AllowedGrantTypes   = GrantTypes.ResourceOwnerPassword,
             RequireClientSecret = false,
-
-            RedirectUris           = { "https://localhost:7000/signin-oidc" },
-            PostLogoutRedirectUris = { "https://localhost:7000/signout-callback-oidc" },
-            AllowedCorsOrigins     = { "https://localhost:7000" },
 
             AllowedScopes =
             {
@@ -59,7 +58,7 @@ public static class Config
                 "urban-issues-api.write"
             },
 
-            AllowOfflineAccess = true
+            AllowOfflineAccess = true   // refresh tokens for the mobile session
         },
 
         new Client
@@ -72,8 +71,9 @@ public static class Config
             RequireClientSecret = true,
             ClientSecrets       = { new Secret("dev-admin-secret".Sha256()) },
 
-            RedirectUris           = { "http://localhost:3000/api/auth/callback" },
-            PostLogoutRedirectUris = { "http://localhost:3000/" },
+            // The admin app runs on port 3001; port 3000 belongs to the API gateway.
+            RedirectUris           = { "http://localhost:3001/api/auth/callback" },
+            PostLogoutRedirectUris = { "http://localhost:3001/" },
 
             AllowedScopes =
             {
@@ -87,6 +87,53 @@ public static class Config
 
             AllowOfflineAccess               = true,   // refresh tokens
             AllowAccessTokensViaBrowser      = false,
+            RequireConsent                   = false,
+            AlwaysIncludeUserClaimsInIdToken = true,   // guarantees role in id_token
+
+            RefreshTokenUsage      = TokenUsage.OneTimeOnly,   // rotation
+            RefreshTokenExpiration = TokenExpiration.Sliding
+        },
+
+        new Client
+        {
+            ClientId   = "urban-issues-mobile",
+            ClientName = "Urban Issues Mobile App",
+
+            // Native public client (no secret). Supports both the browser code+PKCE
+            // flow and the direct password grant (ROPC) the Expo app uses today.
+            AllowedGrantTypes   = { GrantType.AuthorizationCode, GrantType.ResourceOwnerPassword },
+            RequirePkce         = true,
+            RequireClientSecret = false,
+
+            // expo-auth-session redirect URIs. Duende does exact-string matching,
+            // so every environment the app runs in must be listed here:
+            //   - Expo Go over USB (adb reverse) -> exp://127.0.0.1:8081/--/redirect
+            //   - Expo Go on Wi-Fi LAN           -> exp://<dev-machine-LAN-IP>:8081/--/redirect
+            //   - Dev / standalone build         -> urbanissuesmobile://redirect
+            RedirectUris =
+            {
+                "exp://127.0.0.1:8081/--/redirect",
+                "exp://192.168.0.116:8081/--/redirect",
+                "urbanissuesmobile://redirect"
+            },
+            PostLogoutRedirectUris =
+            {
+                "exp://127.0.0.1:8081/--/redirect",
+                "exp://192.168.0.116:8081/--/redirect",
+                "urbanissuesmobile://redirect"
+            },
+
+            AllowedScopes =
+            {
+                "openid",
+                "profile",
+                "email",
+                "roles",
+                "urban-issues-api.read",
+                "urban-issues-api.write"
+            },
+
+            AllowOfflineAccess               = true,   // refresh tokens
             RequireConsent                   = false,
             AlwaysIncludeUserClaimsInIdToken = true,   // guarantees role in id_token
 

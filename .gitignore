@@ -771,11 +771,18 @@ sketch
 
 # End of https://www.toptal.com/developers/gitignore/api/csharp,visualstudio,visualstudiocode,react,node,java
 
-# JetBrains IDEA
+### Project additions (build artifacts that were accidentally committed) ###
+**/.gradle/
+**/build/
+**/obj/
+**/bin/
+.vs/
 .idea/
 
-# Gradle
-.gradle/
-
-NotificationsService/build/
-ReportsService/build/
+### Project additions (build artifacts that were accidentally committed) ###
+**/.gradle/
+**/build/
+**/obj/
+**/bin/
+.vs/
+.idea/

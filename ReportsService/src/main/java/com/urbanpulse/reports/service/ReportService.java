@@ -121,7 +121,8 @@ public class ReportService {
     private record CursorData(OffsetDateTime time, String id) {}
 
     private ReportSummaryDto toSummary(Report r) {
-        return new ReportSummaryDto(r.getId(), r.getTitle(), r.getCategory(), r.getStatus(), r.getCreatedAt());
+        return new ReportSummaryDto(r.getId(), r.getTitle(), r.getCategory(), r.getStatus(), r.getCreatedAt(),
+                new GeoPointDto(r.getLat(), r.getLon()));
     }
 
     private ReportDetailDto toDetail(Report r) {
