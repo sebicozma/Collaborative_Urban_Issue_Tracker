@@ -80,6 +80,11 @@ builder.Services.AddSingleton<IEventPublisher, RabbitMqEventPublisher>();
 builder.Services
     .AddIdentityServer(options =>
     {
+        // Pin the issuer so tokens validate identically whether identity is
+        // reached via http://localhost:5222 (host) or http://urban-identity:5222
+        // (inside the compose network).
+        options.IssuerUri = "http://localhost:5222";
+
         options.Events.RaiseErrorEvents       = true;
         options.Events.RaiseInformationEvents = true;
         options.Events.RaiseFailureEvents     = true;
@@ -96,7 +101,12 @@ builder.Services
         opt.ConfigureDbContext = ConfigureDbContext;
     })
     .AddAspNetIdentity<ApplicationUser>()
-    .AddDeveloperSigningCredential();
+    // Persist the dev signing key so container rebuilds don't rotate it and
+    // invalidate every outstanding token. docker-compose points this at a
+    // named volume (/app/keys); local runs keep the default location.
+    .AddDeveloperSigningCredential(
+        persistKey: true,
+        filename: builder.Configuration["DevSigningKeyFile"] ?? "tempkey.jwk");
 
 var app = builder.Build();
 

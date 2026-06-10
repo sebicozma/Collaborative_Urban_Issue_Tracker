@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
 import iconUrl from "leaflet/dist/images/marker-icon.png";
 import shadowUrl from "leaflet/dist/images/marker-shadow.png";
+import type { ReportSummary } from "@/lib/reports";
 
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: iconRetinaUrl.src,
@@ -15,9 +16,7 @@ L.Icon.Default.mergeOptions({
 
 const MAP_CENTER: [number, number] = [45.7597, 21.23];
 
-const SAMPLE_REPORT: [number, number] = [45.7597, 21.23];
-
-export default function Map() {
+export default function Map({ reports }: { reports: ReportSummary[] }) {
   return (
     <MapContainer
       center={MAP_CENTER}
@@ -29,13 +28,20 @@ export default function Map() {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <Marker position={SAMPLE_REPORT}>
-        <Popup>
-          Sample report
-          <br />
-          45.7597, 21.2300
-        </Popup>
-      </Marker>
+      {reports.map((report) => (
+        <Marker
+          key={report.reportId}
+          position={[report.location.lat, report.location.lon]}
+        >
+          <Popup>
+            <strong>{report.title}</strong>
+            <br />
+            {report.category ?? "uncategorised"} · {report.status}
+            <br />
+            {new Date(report.createdAt).toLocaleString()}
+          </Popup>
+        </Marker>
+      ))}
     </MapContainer>
   );
 }

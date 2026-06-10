@@ -44,6 +44,7 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:5222
+          jwk-set-uri: http://localhost:5222/.well-known/openid-configuration/jwks
 
   jackson:
     serialization:

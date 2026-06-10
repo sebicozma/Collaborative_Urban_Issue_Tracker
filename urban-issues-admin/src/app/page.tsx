@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
+import { fetchReports } from "@/lib/reports";
 import MapView from "@/components/MapView";
 
 function initials(name?: string, email?: string): string {
@@ -21,6 +22,9 @@ export default async function Home() {
   }
 
   const { user } = session;
+
+  const reports = await fetchReports();
+  const connected = reports !== null;
 
   return (
     <div className="flex h-screen w-full">
@@ -90,12 +94,14 @@ export default async function Home() {
             </div>
           </div>
           <div className="ml-auto flex items-center gap-2 text-xs text-gray-500">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            Connected
+            <span
+              className={`h-2 w-2 rounded-full ${connected ? "bg-emerald-500" : "bg-red-500"}`}
+            />
+            {connected ? "Connected" : "Reports API unreachable"}
           </div>
         </header>
         <div className="relative flex-1">
-          <MapView />
+          <MapView reports={reports ?? []} />
         </div>
       </main>
     </div>
