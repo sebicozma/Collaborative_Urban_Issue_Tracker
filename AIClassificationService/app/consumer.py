@@ -73,6 +73,10 @@ async def run_consumer(connection: aio_pika.RobustConnection) -> None:
         },
     )
 
+    # The binding also exists in rabbitmq/definitions.json, but declaring it here
+    # keeps the consumer working against a broker without those definitions.
+    await queue.bind(exchange, routing_key="report.created")
+
     logger.info("Listening on queue 'ai-classification.report-created'...")
 
     async with queue.iterator() as queue_iter:

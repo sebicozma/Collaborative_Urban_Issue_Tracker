@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { ReportSummary } from "@/lib/reports";
 
 const Map = dynamic(() => import("./Map"), {
   ssr: false,
@@ -11,6 +12,6 @@ const Map = dynamic(() => import("./Map"), {
   ),
 });
 
-export default function MapView() {
-  return <Map />;
+export default function MapView({ reports }: { reports: ReportSummary[] }) {
+  return <Map reports={reports} />;
 }
