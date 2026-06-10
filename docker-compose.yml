@@ -57,6 +57,20 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  ai-classification:
+    build:
+      context: ./AIClassificationService
+    container_name: urban-ai-classification
+    ports:
+      - "8083:8000"
+    environment:
+      RABBITMQ_URL: amqp://urban:urban@urban-rabbitmq:5672/
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      MODEL_VERSION: gpt-4o-2024-05-13
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
   notifications-service:
     build:
       context: ./NotificationsService
