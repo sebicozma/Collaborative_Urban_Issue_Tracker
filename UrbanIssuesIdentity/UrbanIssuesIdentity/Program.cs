@@ -1,9 +1,13 @@
+using Duende.IdentityServer.Validation;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using UrbanIssuesIdentity.Data;
 using UrbanIssuesIdentity.Messaging;
 using UrbanIssuesIdentity.OpenApi;
+using UrbanIssuesIdentity.Validation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,6 +67,14 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath        = "/Account/Login";
     options.LogoutPath       = "/Account/Logout";
     options.AccessDeniedPath = "/Account/AccessDenied";
+
+    // Local dev runs over plain HTTP (an adb-reverse tunnel to a physical phone).
+    // A SameSite=None cookie without Secure is dropped by the browser, which breaks
+    // the login -> /connect/authorize/callback redirect (the user gets bounced back
+    // to the login page). Lax is correct for the redirect-based code flow and is
+    // sent on the top-level authorize redirect.
+    options.Cookie.SameSite     = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 });
 
 // ---- Messaging --------------------------------------------------------------
@@ -91,6 +103,12 @@ builder.Services
         options.Events.RaiseSuccessEvents     = true;
 
         options.EmitStaticAudienceClaim = true;
+
+        // See ConfigureApplicationCookie above: force Lax on the cookies IdentityServer
+        // governs so they survive the HTTP dev tunnel. Without this, Duende sets them
+        // SameSite=None and the browser drops them over plain HTTP.
+        options.Authentication.CookieSameSiteMode             = SameSiteMode.Lax;
+        options.Authentication.CheckSessionCookieSameSiteMode = SameSiteMode.Lax;
     })
     .AddConfigurationStore<ApplicationDbContext>(opt =>
     {
@@ -107,6 +125,21 @@ builder.Services
     .AddDeveloperSigningCredential(
         persistKey: true,
         filename: builder.Configuration["DevSigningKeyFile"] ?? "tempkey.jwk");
+
+// Duende post-configures the ASP.NET Identity application cookie to SameSite=None,
+// which the browser drops over our plain-HTTP dev tunnel (so login loops back to the
+// login page). Registered here — AFTER AddIdentityServer — this PostConfigure runs
+// last and wins, forcing the cookie back to Lax so it survives the authorize redirect.
+builder.Services.PostConfigure<CookieAuthenticationOptions>(
+    IdentityConstants.ApplicationScheme,
+    options =>
+    {
+        options.Cookie.SameSite     = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    });
+
+// Backs grant_type=password for the mobile app (Duende has no built-in ROPC validator).
+builder.Services.AddTransient<IResourceOwnerPasswordValidator, ResourceOwnerPasswordValidator>();
 
 var app = builder.Build();
 

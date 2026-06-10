@@ -1,30 +1,47 @@
 {
   "expo": {
-    "name": "Urban Pulse",
+    "name": "urban-issues-mobile",
     "slug": "urban-issues-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "urbanpulse",
+    "icon": "./assets/images/icon.png",
+    "scheme": "urbanissuesmobile",
+    "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": false,
-      "bundleIdentifier": "com.urbanpulse.mobile",
-      "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Used to attach your location to issue reports."
-      }
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.urbanissues.mobile"
     },
     "android": {
-      "package": "com.urbanpulse.mobile",
-      "permissions": ["ACCESS_FINE_LOCATION"]
+      "package": "com.urbanissues.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       "expo-router",
-      "expo-location",
       [
-        "expo-image-picker",
+        "expo-splash-screen",
         {
-          "photosPermission": "Used to attach photos to issue reports."
+          "backgroundColor": "#208AEF",
+          "android": {
+            "image": "./assets/images/splash-icon.png",
+            "imageWidth": 76
+          }
         }
-      ]
-    ]
+      ],
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
   }
 }
