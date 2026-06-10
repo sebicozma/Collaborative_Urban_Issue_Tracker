@@ -1,9 +1,12 @@
+import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
+import { queryClient } from '@/api/query-client';
 import { AuthProvider, useAuth } from '@/auth/auth-context';
+import { Brand } from '@/constants/theme';
 
 // Hold the splash screen until the persisted session has been restored.
 SplashScreen.preventAutoHideAsync();
@@ -24,7 +27,11 @@ function RootNavigator() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={isAuthenticated}>
-        <Stack.Screen name="index" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="report/[id]"
+          options={{ headerShown: true, title: 'Report', headerTintColor: Brand.primaryDark }}
+        />
       </Stack.Protected>
       <Stack.Protected guard={!isAuthenticated}>
         <Stack.Screen name="login" />
@@ -36,8 +43,10 @@ function RootNavigator() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <RootNavigator />
-      <StatusBar style="light" />
+      <QueryClientProvider client={queryClient}>
+        <RootNavigator />
+        <StatusBar style="light" />
+      </QueryClientProvider>
     </AuthProvider>
   );
 }

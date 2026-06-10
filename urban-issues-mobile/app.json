@@ -37,7 +37,13 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Urban Pulse uses your location to attach the spot of the issue you are reporting."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

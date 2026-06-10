@@ -37,30 +37,6 @@ public static class Config
 
     public static IEnumerable<Client> Clients =>
     [
-        // The mobile app authenticates through the gateway's POST /auth/token
-        // translation route (JSON {email, password} -> password grant). ROPC is
-        // deprecated in OAuth 2.1 but is exactly the username+password -> token
-        // shape the gateway spec promises; acceptable for an educational project.
-        new Client
-        {
-            ClientId   = "urban-issues-mobile",
-            ClientName = "Urban Issues Mobile App",
-
-            AllowedGrantTypes   = GrantTypes.ResourceOwnerPassword,
-            RequireClientSecret = false,
-
-            AllowedScopes =
-            {
-                "openid",
-                "profile",
-                "email",
-                "urban-issues-api.read",
-                "urban-issues-api.write"
-            },
-
-            AllowOfflineAccess = true   // refresh tokens for the mobile session
-        },
-
         new Client
         {
             ClientId   = "urban-issues-admin",

@@ -8,8 +8,8 @@ export const app = express();
 
 app.use(globalLimiter);
 
-// Routes from spec/gateway.openapi.yaml. The reports proxy is mounted without a
-// rewrite here: /reports/* maps 1:1 onto the reports service's own /reports/*.
+// Routes from spec/gateway.openapi.yaml. Express strips the mount prefix, so the
+// reports proxy re-adds /reports upstream (see reportsProxy.ts).
 app.use("/auth", authRouter);
 app.use("/reports", reportsProxy);
 

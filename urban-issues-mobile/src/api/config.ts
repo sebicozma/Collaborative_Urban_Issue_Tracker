@@ -29,3 +29,14 @@ export const AUTH_CONFIG = {
    */
   scopes: ['urban-issues-api.read', 'urban-issues-api.write', 'offline_access'],
 } as const;
+
+/**
+ * Reports API configuration. `baseUrl` points at the gateway (the documented public
+ * contract), which proxies `/reports` to the reports-service. On Android use an
+ * adb-reverse tunnel (`adb reverse tcp:3000 tcp:3000`) so 127.0.0.1 reaches the host.
+ * Pointing it straight at the reports-service (`http://127.0.0.1:8081`) also works
+ * when the gateway is not running.
+ */
+export const API_CONFIG = {
+  baseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:3000',
+} as const;
