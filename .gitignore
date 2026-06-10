@@ -770,3 +770,12 @@ sketch
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/csharp,visualstudio,visualstudiocode,react,node,java
+
+# JetBrains IDEA
+.idea/
+
+# Gradle
+.gradle/
+
+NotificationsService/build/
+ReportsService/build/
