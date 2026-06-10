@@ -2,7 +2,7 @@ namespace UrbanIssuesIdentity.Messaging.Events;
 
 public sealed record UserRegisteredEvent(
     Guid           EventId,
-    DateTimeOffset OccurredAt,
+    DateTimeOffset EventTimeStamp,
     string         UserId,
-    string         Username,
-    string         Email);
+    string         Email,
+    string         Role);

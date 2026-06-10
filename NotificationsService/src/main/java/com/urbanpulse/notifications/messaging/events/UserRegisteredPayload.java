@@ -3,8 +3,9 @@ package com.urbanpulse.notifications.messaging.events;
 import java.time.OffsetDateTime;
 
 public record UserRegisteredPayload(
+        String eventId,
+        OffsetDateTime eventTimeStamp,
         String userId,
         String email,
-        String role,
-        OffsetDateTime registeredAt
+        String role
 ) {}

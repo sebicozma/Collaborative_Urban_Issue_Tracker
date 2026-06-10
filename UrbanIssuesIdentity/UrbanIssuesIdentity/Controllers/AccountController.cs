@@ -66,11 +66,11 @@ public sealed class AccountController : ControllerBase
         ]);
 
         var @event = new UserRegisteredEvent(
-            EventId:    Guid.NewGuid(),
-            OccurredAt: DateTimeOffset.UtcNow,
-            UserId:     user.Id,
-            Username:   request.Username,
-            Email:      request.Email);
+            EventId:        Guid.NewGuid(),
+            EventTimeStamp: DateTimeOffset.UtcNow,
+            UserId:         user.Id,
+            Email:          request.Email,
+            Role:           DefaultRole);
 
         try
         {

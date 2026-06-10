@@ -39,6 +39,27 @@ services:
       timeout: 5s
       retries: 5
 
+  identity-service:
+    build:
+      context: ./UrbanIssuesIdentity
+    container_name: urban-identity
+    hostname: urban-identity
+    ports:
+      - "5222:5222"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: Host=urban-postgres;Port=5432;Database=identity-db;Username=identity_app;Password=identity_app
+      RabbitMq__HostName: urban-rabbitmq
+      RabbitMq__Port: 5672
+      RabbitMq__UserName: urban
+      RabbitMq__Password: urban
+      RabbitMq__VirtualHost: /
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
   reports-service:
     build:
       context: ./ReportsService
@@ -50,6 +71,10 @@ services:
       SPRING_DATASOURCE_USERNAME: reports_app
       SPRING_DATASOURCE_PASSWORD: reports_app
       SPRING_RABBITMQ_HOST: urban-rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: urban
+      SPRING_RABBITMQ_PASSWORD: urban
+      SPRING_RABBITMQ_VIRTUAL_HOST: /
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://urban-identity:5222
     depends_on:
       postgres:
@@ -79,9 +104,32 @@ services:
       - "8082:8082"
     environment:
       SPRING_RABBITMQ_HOST: urban-rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: urban
+      SPRING_RABBITMQ_PASSWORD: urban
+      SPRING_RABBITMQ_VIRTUAL_HOST: /
+      SPRING_MAIL_USERNAME: "noreply.urban.pulse@gmail.com"              # Gmail address used as sender
+      SPRING_MAIL_PASSWORD: ${GMAIL_APP_PASSWORD:-}            # Gmail app password, read from .env at repo root
+      NOTIFICATIONS_MAIL_FROM: "noreply.urban.pulse@gmail.com"           # sender shown on outgoing emails
+      NOTIFICATIONS_MAIL_ADMIN_ADDRESS: ""  # recipient for report status-change emails
     depends_on:
       rabbitmq:
         condition: service_healthy
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    container_name: urban-gateway
+    hostname: urban-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      REPORTS_SERVER_URL: http://urban-reports:8081
+      IDENTITY_SERVER_URL: http://urban-identity:5222
+    depends_on:
+      - reports-service
+      - identity-service
 
 volumes:
   rabbitmq-data:

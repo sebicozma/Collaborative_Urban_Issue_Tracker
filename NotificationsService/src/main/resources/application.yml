@@ -11,13 +11,32 @@ spring:
     listener:
       simple:
         acknowledge-mode: manual
+        prefetch: 16
 
-  jackson:
-    serialization:
-      write-dates-as-timestamps: false
-    deserialization:
-      fail-on-unknown-properties: false
-    time-zone: UTC
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: "noreply.urban.pulse@gmail.com"   # Gmail address used as sender
+    password: "${GMAIL_APP_PASSWORD:}"   # Gmail app password, supplied via environment (see .env at repo root)
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
 server:
   port: 8082
+
+notifications:
+  mail:
+    from: "noreply.urban.pulse@gmail.com"           # sender shown on outgoing emails (usually same as spring.mail.username)
+    admin-address: ""  # recipient for report status-change notifications
+    retry:             # retries for transient SMTP failures (auth failures are not retried)
+      max-attempts: 3
+      initial-interval-ms: 2000
+      multiplier: 2.0

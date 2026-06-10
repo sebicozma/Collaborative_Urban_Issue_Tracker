@@ -27,9 +27,17 @@ spring:
     username: urban
     password: urban
     virtual-host: /
+    publisher-confirm-type: correlated
+    publisher-returns: true
     listener:
       simple:
         acknowledge-mode: auto
+        prefetch: 16
+        retry:
+          enabled: true
+          initial-interval: 2s
+          max-attempts: 3
+          multiplier: 2.0
 
   security:
     oauth2:
